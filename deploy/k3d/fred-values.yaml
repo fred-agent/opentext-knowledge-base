@@ -1,0 +1,16 @@
+# Lets this Knowledge Base publish under its prefix on the Fred of the k3d instance:
+#   make k3d-app APP=fred VALUES=<this checkout>/deploy/k3d/fred-values.yaml
+#
+# Helm replaces lists instead of merging them: the list below restates the
+# kb-fred.samples entry of fred-deployment-factory's k3d-apps/fred/values.yaml,
+# and must follow it if it changes. Another application's values file that
+# touches other lists can be given in the same VALUES.
+applications:
+  control-plane-backend:
+    configuration:
+      knowledge_bases:
+        publishers:
+          - client_id: kb-fred.samples
+            prefix: fred.samples
+          - client_id: kb-fred.opentext
+            prefix: fred.opentext

@@ -1,0 +1,6 @@
+apiVersion: v2
+name: fake-content-server
+description: A stand-in for OpenText Content Server, for local testing of the OpenText Knowledge Base. Never deployed next to a real one.
+type: application
+version: 0.1.0
+appVersion: "0.1.0"

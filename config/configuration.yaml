@@ -1,0 +1,60 @@
+# Configured the way every Fred backend is: the same keys, parsed by the models
+# fred-core owns. Only secrets live in the environment (config/env.template).
+#
+# A deployed pod mounts this from a ConfigMap and points $CONFIG_FILE at it.
+
+# This pod's identity in metrics and logs: the `service` label of every series
+# and the `service` field of every log line.
+app:
+  runtime_id: "opentext-kb"
+
+knowledge_base:
+  # The dotted prefix this image owns. Every name it publishes lives under it,
+  # and Fred binds the prefix to this pod's client on the first publication.
+  prefix: "fred.opentext"
+  control_plane_url: "http://localhost:8222/control-plane/v1"
+  # Optional: leave it out and a run logs what it would write instead.
+  knowledge_flow_url: "http://localhost:8111/knowledge-flow/v1"
+
+security:
+  m2m:
+    enabled: true
+    realm_url: "http://localhost:8080/realms/app"
+    # Named after the prefix above: Fred binds the prefix to the first client
+    # that publishes under it.
+    client_id: "kb-fred.opentext"
+    secret_env_var: "FRED_KB_CLIENT_SECRET" # pragma: allowlist secret (a variable name, not a value)
+
+scheduler:
+  temporal:
+    host: "localhost:7233"
+    namespace: "default"
+    # No task_queue: a run's queue is derived from the definition id on both
+    # sides, so that a pod and the Control Plane cannot disagree about it.
+
+# This pod's own section: what whoever deploys the pod decides, the same for
+# every instance it serves. What a team chooses (folder, account, files) is in
+# its form instead. The values below are the defaults, written out so a
+# deployment states them; `base_url` is the one an operator must fill in. An
+# unknown key stops the pod.
+opentext:
+  # Content Server's REST API root (…/api/v2), or a gateway's address for it.
+  base_url: ""
+  # What stands in front of Content Server: none, or thales-api-manager, which
+  # signs every request with the subscription $OPENTEXT_KB_API_KEY and
+  # $OPENTEXT_KB_API_SECRET belong to.
+  gateway: "none"
+  api_manager:
+    username: ""
+    hash_algorithm: "SHA-512"
+  # Children asked for per listing page, and folders listed at once.
+  page_size: 500
+  listing_concurrency: 4
+  # Documents one run fetches and hands to Fred at once (1-64). Each is held
+  # whole in memory while it is written: this times max_file_mib is a run's
+  # memory ceiling.
+  concurrency: 4
+  max_file_mib: 50
+  # How long a run follows one document's ingestion. Past it the document is
+  # reported as `ingestion_pending`, not as a failure.
+  ingestion_wait_seconds: 600

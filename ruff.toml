@@ -1,0 +1,11 @@
+# Fred's shared ruff lint policy (fred's own ruff.toml), applied to every
+# Python package of this repository through ruff's upward config discovery, so
+# code linted here is linted as it would be in the fred monorepo.
+#
+# Lint rules only: formatting and line length stay per package.
+
+target-version = "py312"
+
+[lint]
+# PIE790: redundant `pass`/`...` after a docstring or another statement.
+extend-select = ["PIE790"]

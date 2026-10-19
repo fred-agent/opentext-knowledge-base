@@ -1,0 +1,62 @@
+[project]
+name = "opentext-knowledge-base"
+version = "0.1.0"
+description = "Fred Knowledge Base — synchronize the documents of an OpenText Content Server folder"
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+license = { text = "Apache-2.0" }
+dependencies = [
+  # The `knowledge-base` extra brings the workflow engine the `run` command
+  # needs; `publish` and the handler itself do not load it. 4.1.0 is the first
+  # release whose base stays clear of the agents platform (fred-core, langchain).
+  "fred-sdk[knowledge-base]>=4.5.1",
+  # Content Server's two calls. Used directly here, not only through the SDK's publisher.
+  "httpx>=0.28.1",
+  # gitignore's own pattern language, so include/exclude mean what an operator
+  # already expects them to mean.
+  "pathspec>=1.1.0",
+]
+
+# The contract's entry point is `python -m opentext_kb` (publish / run). This
+# script is the developer tool beside it.
+[project.scripts]
+opentext-kb-dev = "opentext_kb.cli:main"
+
+[project.optional-dependencies]
+dev = [
+  "bandit[baseline]>=1.8.6",
+  "basedpyright==1.31.0",
+  "detect-secrets>=1.5.0",
+  "pytest>=8.4.2",
+  "pytest-asyncio>=1.0.0",
+  "pytest-cov>=6.2.1",
+  "pytest-socket>=0.7.0",
+  "ruff>=0.12.5",
+]
+
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["opentext_kb*"]
+
+[dependency-groups]
+dev = [
+  "bandit[baseline]>=1.8.6",
+  "basedpyright==1.31.0",
+  "detect-secrets>=1.5.0",
+  "pytest>=8.4.2",
+  "pytest-asyncio>=1.0.0",
+  "pytest-cov>=6.2.1",
+  "pytest-socket>=0.7.0",
+  "ruff>=0.12.5",
+]
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+addopts = "-ra"
+markers = ["integration: marks tests that require external services"]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+

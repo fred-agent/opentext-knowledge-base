@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}
+  labels: { app.kubernetes.io/name: fake-content-server, app.kubernetes.io/instance: {{ .Release.Name }} }
+spec:
+  selector: { app.kubernetes.io/name: fake-content-server, app.kubernetes.io/instance: {{ .Release.Name }} }
+  ports:
+    - { name: http, port: {{ .Values.port }}, targetPort: http }

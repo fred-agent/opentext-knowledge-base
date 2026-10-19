@@ -1,0 +1,10 @@
+// Pyright config used when opening the project with the workspace in
+// vscode and by the basedpyright CLI (make type-check / make baseline-type-check).
+{
+  "include": ["opentext_kb", "fake_content_server", "tests"],
+  "typeCheckingMode": "standard",
+  "reportMissingTypeStubs": false,
+  "reportUnreachable": "warning",
+  "venvPath": ".",
+  "venv": ".venv"
+}

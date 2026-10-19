@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+# Run by fred-deployment-factory's `make k3d-app` after the sync: what to do next.
+cat <<'NEXT'
+OpenText Knowledge Base deployed, reading the fake Content Server beside it
+(behind the API Manager gateway).
+In Fred (http://localhost:8088), create an "OpenText Content Server folder"
+Knowledge Base for a team:
+  Folder 2000 · Account fake-account · Password fake-password
+The fake's tree is fake_content_server/sample in this repository (rebuild to change it).
+If publishing was refused for the prefix fred.opentext, register it once:
+  make k3d-app APP=fred VALUES=<this checkout>/deploy/k3d/fred-values.yaml
+NEXT

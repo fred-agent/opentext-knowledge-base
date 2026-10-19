@@ -1,0 +1,2 @@
+Ajouter, modifier ou supprimer un fichier sous fake_content_server/sample, puis relancer
+une synchronisation : la bibliothèque suit.

@@ -1,0 +1,18 @@
+# The fake Content Server: a test fixture and a k3d stand-in, never deployed next
+# to a real one. The standard library only, so nothing is installed.
+ARG PYTHON_IMAGE=mirror.gcr.io/python:3.12.8-slim
+FROM ${PYTHON_IMAGE}
+
+ARG USER_ID=1000
+RUN useradd -u ${USER_ID} -m fake-content-server
+
+WORKDIR /app
+COPY --chown=${USER_ID} fake_content_server /app/fake_content_server
+
+ENV PYTHONUNBUFFERED=1 \
+    FAKE_CONTENT_SERVER_ROOT_DIR=/app/fake_content_server/sample \
+    FAKE_CONTENT_SERVER_PORT=8080
+
+USER fake-content-server
+EXPOSE 8080
+ENTRYPOINT ["python", "-m", "fake_content_server"]

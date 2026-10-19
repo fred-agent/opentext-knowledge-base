@@ -1,0 +1,38 @@
+# =============================================================================
+# The OpenText Knowledge Base on the local k3d instance: values for Fred's
+# knowledge-base chart, applied over deploy/values.yaml by fred-deployment-factory's
+# `make k3d-app DIR=<this checkout>`.
+#
+#   address  where a service of the k3d stack (`make k3d-up`) is reached
+#   secret   the client secret, by reference to fred-secrets; never a literal
+#
+# It reads the fake Content Server deployed beside it. To read a real one,
+# apply a values file over this one (VALUES=...) setting `opentext.base_url`,
+# and behind the API Manager `opentext.api_manager.username` and the
+# subscription's two variables from a Secret of yours.
+# =============================================================================
+
+configuration:
+  security:
+    m2m:
+      realm_url: "http://keycloak:8080/realms/app"   # address: the issuer Fred trusts
+  scheduler:
+    temporal:
+      host: "temporal:7233"                          # address
+  # The fake Content Server deployed beside it, behind the API Manager gateway
+  # so the signature is exercised.
+  opentext:
+    base_url: "http://fake-content-server:8080/otcs/api/v2"   # address: the fake
+    gateway: thales-api-manager
+    api_manager:
+      username: "fake-apim-user"
+
+extraEnvVars:
+  # secret: the kb-fred.opentext client (deploy/k3d/identities.yaml), its secret
+  # generated into fred-secrets by the factory the first time.
+  - name: FRED_KB_CLIENT_SECRET
+    valueFrom:
+      secretKeyRef: { name: fred-secrets, key: KEYCLOAK_KB_FRED_OPENTEXT_CLIENT_SECRET, optional: false } # pragma: allowlist secret (Secret reference)
+  # The fake's subscription: public constants, accepted by nothing else.
+  - { name: OPENTEXT_KB_API_KEY, value: fake-api-key } # pragma: allowlist secret
+  - { name: OPENTEXT_KB_API_SECRET, value: fake-api-secret } # pragma: allowlist secret

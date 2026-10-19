@@ -1,0 +1,30 @@
+# The OpenText Knowledge Base on the local k3d instance of fred-deployment-factory,
+# which runs
+#   make k3d-app DIR=<this checkout> [FRED_LIBS=local]
+# and passes the kube context, the namespace, FRED_LIBS and FRED_REPO. Two
+# releases: the Knowledge Base, on Fred's generic knowledge-base chart (the
+# published one, or with FRED_LIBS=local the one in the fred checkout), and the
+# fake Content Server it reads by default (deploy/charts/fake-content-server). deploy/k3d/build
+# writes both images' values.
+{{- $local := eq (env "FRED_LIBS") "local" }}
+{{- $fakeImages := printf "%s/fake-content-server-images.yaml" (env "K3D_APP_OUT") }}
+releases:
+  - name: knowledge-base-opentext
+    chart: {{ if $local }}{{ env "FRED_REPO" }}/deploy/charts/knowledge-base{{ else }}oci://ghcr.io/thalesgroup/fred-helm/knowledge-base{{ end }}
+    {{- if not $local }}
+    # The first fred chart release carrying knowledge-base.
+    version: 3.5.0
+    {{- end }}
+    values:
+      - ../values.yaml
+      - values.yaml
+      {{- with env "K3D_IMAGE_VALUES" }}
+      - {{ . | quote }}
+      {{- end }}
+
+  - name: fake-content-server
+    chart: ../charts/fake-content-server
+    {{- if and (env "K3D_APP_OUT") (isFile $fakeImages) }}
+    values:
+      - {{ $fakeImages | quote }}
+    {{- end }}

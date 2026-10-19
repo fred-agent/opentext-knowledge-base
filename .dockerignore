@@ -1,0 +1,22 @@
+.git
+.gitignore
+
+servers/
+
+**/.venv
+**/target
+**/.ruff_cache
+**/.pytest_cache
+**/__pycache__
+**/*.pyc
+**/*.pyo
+**/*.pyd
+**/*.egg-info
+
+# Every pod's secrets file, not just the agents'. A Knowledge Base image is
+# published to a registry, and its config/ directory is copied in whole.
+**/config/.env
+
+# Per-machine ledgers and coverage output, which a build has no use for.
+**/htmlcov
+**/.coverage

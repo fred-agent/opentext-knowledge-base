@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+# Build this Knowledge Base's image and the fake Content Server's for the local k3d
+# instance (fred-deployment-factory's `make k3d-app`). Writes $K3D_APP_OUT/images.txt,
+# the content-tagged references to copy into the cluster, $K3D_APP_OUT/images.yaml,
+# the Knowledge Base release's image values, and $K3D_APP_OUT/fake-content-server-images.yaml,
+# the fake Content Server release's: the knowledge-base chart refuses a key it does not know.
+kb="$(cd "$(dirname "$0")/../.." && pwd)"
+out="${K3D_APP_OUT:?the factory provides K3D_APP_OUT}"
+
+# Build with one retry (a dependency download cut mid-build is the usual
+# failure), then print the content-tagged reference.
+built() {
+  local target="$1" image="$2" log="$out/$1.log"
+  echo "Build $target (log: $log)" >&2
+  if ! make -C "$kb" "$target" >"$log" 2>&1; then
+    echo "Retry $target; see $log" >&2
+    make -C "$kb" "$target" >"$log" 2>&1 || { tail -n 30 "$log" >&2; exit 1; }
+  fi
+  local id repository tag
+  id="$(docker image inspect --format '{{.Id}}' "$image")"
+  repository="${image%:*}"
+  tag="k3d-${id#sha256:}"; tag="${tag:0:16}"
+  docker tag "$image" "$repository:$tag"
+  echo "Built: $repository:$tag" >&2
+  printf '%s:%s\n' "$repository" "$tag"
+}
+
+print() { make -s -C "$kb" --eval 'print-%: ; @echo $($*)' "print-$1"; }
+kb_image="$(built docker-build "$(print DOCKER_IMAGE)")"
+fake_image="$(built fake-content-server-build "$(print FAKE_CONTENT_SERVER_IMAGE)")"
+
+# Publish only a complete build's outputs.
+printf '%s\n%s\n' "$kb_image" "$fake_image" >"$out/images.txt"
+printf 'image: { repository: "%s", tag: "%s" }\n' "${kb_image%:*}" "${kb_image##*:}" >"$out/images.yaml"
+printf 'image: { repository: "%s", tag: "%s" }\n' "${fake_image%:*}" "${fake_image##*:}" >"$out/fake-content-server-images.yaml"

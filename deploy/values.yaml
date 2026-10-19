@@ -1,0 +1,61 @@
+# =============================================================================
+# The OpenText Knowledge Base's values for Fred's generic knowledge-base chart: what
+# any deployment of this pod starts from. A deployment adds its own values file
+# (addresses, secrets, image tag); deploy/k3d/values.yaml is the local one.
+#
+#   helm install knowledge-base-opentext oci://ghcr.io/thalesgroup/fred-helm/knowledge-base \
+#     --version <fred chart version> -f deploy/values.yaml -f my-values.yaml
+#
+# The chart's README (helm show readme) lists what each deployment must set.
+# =============================================================================
+
+# This release of the pod: a deployment names the registry it pushed it to.
+image:
+  repository: opentext-knowledge-base
+  tag: "0.1.0"
+
+# The pod's configuration (fred-sdk's PodConfiguration plus this pod's own
+# `opentext:` section, which the chart passes through).
+configuration:
+  # This pod's identity in metrics and logs (`service` label and log field).
+  app:
+    runtime_id: opentext-kb
+  knowledge_base:
+    prefix: fred.opentext
+    control_plane_url: http://control-plane-backend:8222/control-plane/v1
+    knowledge_flow_url: http://knowledge-flow-backend:8000/knowledge-flow/v1
+  security:
+    m2m:
+      enabled: true
+      realm_url: http://keycloak.infra.svc.cluster.local/realms/app
+      client_id: kb-fred.opentext
+      secret_env_var: FRED_KB_CLIENT_SECRET # pragma: allowlist secret (environment variable name)
+  scheduler:
+    temporal:
+      host: temporal-frontend.infra.svc.cluster.local:7233
+      namespace: default
+  # Content Server's REST API root: a deployment must set it, and the gateway
+  # in front if there is one (see config/configuration.yaml).
+  opentext:
+    base_url: ""
+    gateway: none
+  observability:
+    kpi:
+      prometheus:
+        enabled: true
+        address: 0.0.0.0
+        port: 9000
+    temporal:
+      prometheus:
+        enabled: true
+        address: 0.0.0.0
+        port: 9001
+
+# The client secret, from a Secret the deployment owns (`knowledge-base-m2m`, key
+# `client-secret`). A Content Server certificate authority the image's bundle
+# does not hold is added through $OPENTEXT_KB_CA_FILE and a mounted PEM (a list
+# replaces, so restate this entry when adding to it).
+extraEnvVars:
+  - name: FRED_KB_CLIENT_SECRET
+    valueFrom:
+      secretKeyRef: { name: knowledge-base-m2m, key: client-secret } # pragma: allowlist secret (Secret reference)

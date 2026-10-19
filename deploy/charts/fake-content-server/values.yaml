@@ -1,0 +1,7 @@
+# The fake Content Server (fake_content_server/ in this repository): its sample tree, served
+# behind fixed public credentials. deploy/k3d/build writes the image built locally.
+image:
+  repository: fake-content-server
+  tag: latest
+  pullPolicy: IfNotPresent
+port: 8080
